@@ -40,14 +40,14 @@ async def create_user(user: User):
     user_dict = user.dict()
     user_dict["password"] = get_password_hash(user.password)
     
-    result = await db.users.insert_one(user.dict())
+    result = await db.users.insert_one(user_dict)
     return {"inserted_id": str(result.inserted_id), "message": "User created successfully"}
 
 @router.post("/login", response_model=Token)
-async def login(user: UserLogin):
-    """Autentica al usuario y devuelve un token de acceso"""
-    user = await db.users.find_one({"email": user.email})
-    if not user or not verify_password(user.password, user["password"]):
+async def login(form_data: UserLogin):
+    """Autenticates the user and returns an access token"""
+    user = await db.users.find_one({"email": form_data.email})
+    if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
